@@ -15,14 +15,14 @@ This repository contains experimental data, analysis scripts, and results from c
 
 ```
 .
-├── README.md                  # This file
+├── README.md                 # This file
 ├── CITATION.cff              # Citation information
 ├── LICENSE                   # MIT License
 ├── AGENTS.md                 # Project planning documentation
 ├── requirements.txt          # Python dependencies
 │
 ├── data/                     # Experimental data
-│   ├── README.md            # Data overview
+│   ├── README.md             # Data overview
 │   │
 │   ├── workflows/           # Pipeline workflow definitions
 │   │   ├── README.md        # Workflow documentation
@@ -45,8 +45,6 @@ This repository contains experimental data, analysis scripts, and results from c
 │       ├── data/            # Raw measurements
 │       ├── results/         # Final results
 │       └── pyproject.toml   # Python config
-│
-└── docs/                    # Additional documentation
 ```
 
 ## Quick Start
