@@ -1,0 +1,4 @@
+# NHRF totals - Pipeline Nr, Pipeline Name, Duration (s), CO2 (g), Energy (kWh)
+1,base1,13109,32.141,0.406
+2,base2,13633,32.051,0.405
+3,optimized,12538,32.082,0.4053

@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: pvc-artifact-workflow
+spec:
+  entrypoint: pvc-example
+  volumes:
+  - name: storage-volume
+    persistentVolumeClaim:
+      claimName: hostpath-pvc
+  templates:
+  - name: pvc-example
+    container:
+      image: busybox
+      command: [sh, -c]
+      args: ["echo 'This is an artifact test' > /mnt/data/artifact.txt"]
+      volumeMounts:
+      - name: storage-volume
+        mountPath: "/mnt/data"
+    outputs:
+      artifacts:
+      - name: my-artifact
+        path: /mnt/data/artifact.txt
+        archive:
+          none: {}  # Optional, no compression

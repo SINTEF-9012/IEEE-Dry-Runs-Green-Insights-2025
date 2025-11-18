@@ -1,0 +1,236 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: nhrf-local-
+spec:
+  entrypoint: nhrf-local
+  templates:
+  - name: nhrf-local
+    dag:
+      tasks:
+      - name: trimming
+        template: trimming
+        arguments:
+          artifacts:
+            - name: fastq-data
+              s3:
+                key: nhrf/samples
+                bucket: artifacts
+                endpoint: simpipe-minio.default.svc.cluster.local:9000
+                insecure: true
+                accessKeySecret:
+                  name: simpipe-minio
+                  key: root-user
+                secretKeySecret:
+                  name: simpipe-minio
+                  key: root-password
+      - name: alignment-bwa
+        depends: "trimming.Succeeded"
+        template: alignment-bwa
+        arguments:
+          artifacts:
+            - name: trimming-results
+              from: "{{tasks.trimming.outputs.artifacts.trimming-results}}"
+            - name: ref-genome-data
+              s3:
+                key: nhrf/reference_genome
+                bucket: artifacts
+                endpoint: simpipe-minio.default.svc.cluster.local:9000
+                insecure: true
+                accessKeySecret:
+                  name: simpipe-minio
+                  key: root-user
+                secretKeySecret:
+                  name: simpipe-minio
+                  key: root-password
+      - name: alignment-samtools
+        depends: "alignment-bwa.Succeeded"
+        template: alignment-samtools
+        arguments:
+          artifacts:
+            - name: alignment-results
+              from: "{{tasks.alignment-bwa.outputs.artifacts.alignment-results}}"
+      - name: mark-duplicates
+        depends: "alignment-samtools.Succeeded"
+        template: mark-duplicates
+        arguments:
+          artifacts:
+            - name: alignment-results
+              from: "{{tasks.alignment-samtools.outputs.artifacts.alignment-results}}"
+      - name: base-quality-score
+        depends: "mark-duplicates.Succeeded"
+        template: base-quality-score
+        arguments:
+          artifacts:
+            - name: mark-duplicates-results
+              from: "{{tasks.mark-duplicates.outputs.artifacts.mark-duplicates-results}}"
+            - name: ref-genome-data
+              s3:
+                key: nhrf/reference_genome
+                bucket: artifacts
+                endpoint: simpipe-minio.default.svc.cluster.local:9000
+                insecure: true
+                accessKeySecret:
+                  name: simpipe-minio
+                  key: root-user
+                secretKeySecret:
+                  name: simpipe-minio
+                  key: root-password
+
+  - name: trimming
+    container:
+      image: quay.io/biocontainers/fastp:0.23.4--h125f33a_4
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          mkdir -p ${OUTDIR}
+          fastp -i ${TUMOR_FASTQ1} -I ${TUMOR_FASTQ2} -o ${OUTDIR}/trimmed_tumor_R1.fastq.gz -O ${OUTDIR}/trimmed_tumor_R2.fastq.gz -h ${OUTDIR}//tumor_fastp.html -j ${OUTDIR}/tumor_fastp.json
+          fastp -i ${NORMAL_FASTQ1} -I ${NORMAL_FASTQ2} -o ${OUTDIR}/trimmed_normal_R1.fastq.gz -O ${OUTDIR}/trimmed_normal_R2.fastq.gz -h ${OUTDIR}/normal_fastp.html -j ${OUTDIR}/normal_fastp.json
+      env:
+        - name: OUTDIR
+          value: /data/trimmed_data
+        - name: TUMOR_FASTQ1
+          value: /data/fastq_data/SRR24141497_1.fastq.gz
+        - name: TUMOR_FASTQ2
+          value: /data/fastq_data/SRR24141497_2.fastq.gz
+        - name: NORMAL_FASTQ1
+          value: /data/fastq_data/SRR24141508_1.fastq.gz
+        - name: NORMAL_FASTQ2
+          value: /data/fastq_data/SRR24141508_2.fastq.gz
+    inputs:
+      artifacts:
+        - name: fastq-data
+          path: /data/fastq_data
+    outputs:
+      artifacts:
+        - name: trimming-results
+          path: /data/trimmed_data
+
+  - name: alignment-bwa
+    container:
+      image: quay.io/biocontainers/bwa:0.7.13--1
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          mkdir -p /data/alignment_results
+          echo "copying reference genome..."
+          cp ${REF_GENOME_PATH}/${REF_GENOME_FILENAME} ./
+          cp ${REF_GENOME_PATH}/${REF_GENOME_FILENAME}.* ./
+          ls -la ./
+          echo "indexing reference genome..."
+          bwa index ${REF_GENOME_FILENAME}
+          echo "indexing done..."
+          ls -la
+          echo "running bwa mem..."
+          echo "bwa mem - tumor samples"
+          bwa mem ${REF_GENOME_FILENAME} ${TTUMOR_FASTQ1} ${TTUMOR_FASTQ2} > /data/alignment_results/tumor.sam
+          echo "bwa mem - normal samples"
+          bwa mem ${REF_GENOME_FILENAME} ${TNORMAL_FASTQ1} ${TNORMAL_FASTQ2} > /data/alignment_results/normal.sam
+          echo "done."
+      env:
+        - name: REF_GENOME_FILENAME
+          value: Homo_sapiens_assembly38.fasta
+        - name: REF_GENOME_PATH
+          value: /data/ref_genome
+        - name: TTUMOR_FASTQ1
+          value: /data/trimmed_data/trimmed_tumor_R1.fastq.gz
+        - name: TTUMOR_FASTQ2
+          value: /data/trimmed_data/trimmed_tumor_R2.fastq.gz
+        - name: TNORMAL_FASTQ1
+          value: /data/trimmed_data/trimmed_normal_R1.fastq.gz
+        - name: TNORMAL_FASTQ2
+          value: /data/trimmed_data/trimmed_normal_R2.fastq.gz
+    inputs:
+      artifacts:
+        - name: trimming-results
+          path: /data/trimmed_data
+        - name: ref-genome-data
+          path: /data/ref_genome
+    outputs:
+      artifacts:
+        - name: alignment-results
+          path: /data/alignment_results
+
+  - name: alignment-samtools
+    container:
+      image: quay.io/biocontainers/samtools:0.1.19--2
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "running samtools..."
+          samtools view -Sb ${DIRNAME}/tumor.sam | samtools sort -o ${DIRNAME}/tumor_sorted.bam -
+          samtools view -Sb ${DIRNAME}/normal.sam | samtools sort -o ${DIRNAME}/normal_sorted.bam -
+          echo "done."
+      env:
+        - name: DIRNAME
+          value: /data/alignment_results
+    inputs:
+      artifacts:
+        - name: alignment-results
+          path: /data/alignment_results
+    outputs:
+      artifacts:
+        - name: alignment-results
+          path: /data/alignment_results
+
+  - name: mark-duplicates
+    container:
+      image: quay.io/biocontainers/gatk4:4.5.0.0--py36hdfd78af_0
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          mkdir -p ${OUTDIR}
+          echo "marking duplicates..."
+          gatk MarkDuplicates -I ${INDIR}/tumor_sorted.bam -O ${OUTDIR}/tumor_dedup.bam -M ${OUTDIR}/tumor_metrics.txt
+          gatk MarkDuplicates -I ${INDIR}/normal_sorted.bam -O ${OUTDIR}/normal_dedup.bam -M ${OUTDIR}/normal_metrics.txt
+          ls -la ${OUTDIR}
+          echo "done."
+      env:
+        - name: INDIR
+          value: /data/alignment_results
+        - name: OUTDIR
+          value: /data/mark_duplicates
+    inputs:
+      artifacts:
+        - name: alignment-results
+          path: /data/alignment_results
+    outputs:
+      artifacts:
+        - name: mark-duplicates-results
+          path: /data/mark_duplicates
+
+  - name: base-quality-score
+    container:
+      image: quay.io/biocontainers/gatk4:4.5.0.0--py36hdfd78af_0
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "base-quality-score starting..."
+          mkdir -p /data/final_results
+          gatk BaseRecalibrator -I ${TUMOR_DEDUP} -R ${REF_GENOME} --known-sites ${KNOWN_SITES_VCF} -O ${OUTDIR}/tumor_recal_data.table
+          gatk ApplyBQSR -R ${REF_GENOME} -I ${TUMOR_DEDUP} --bqsr-recal-file ${OUTDIR}/tumor_recal_data.table -O ${OUTDIR}/tumor_recal.bam
+          gatk BaseRecalibrator -I ${NORMAL_DEDUP} -R ${REF_GENOME} --known-sites ${KNOWN_SITES_VCF} -O ${OUTDIR}/normal_recal_data.table
+          gatk ApplyBQSR -R ${REF_GENOME} -I ${NORMAL_DEDUP} --bqsr-recal-file ${OUTDIR}/normal_recal_data.table -O ${OUTDIR}/normal_recal.bam
+          ls -la ${OUTDIR}
+          echo "done..."
+      env:
+        - name: REF_GENOME
+          value: /data/ref_genome/Homo_sapiens_assembly38.fasta
+        - name: TUMOR_DEDUP
+          value: /data/mark_duplicates/tumor_dedup.bam
+        - name: NORMAL_DEDUP
+          value: /data/mark_duplicates/normal_dedup.bam
+        - name: KNOWN_SITES_VCF
+          value: dbsnp_146.hg38.vcf.gz
+        - name: OUTDIR
+          value: /data/final_results
+    inputs:
+      artifacts:
+        - name: mark-duplicates-results
+          path: /data/mark_duplicates
+        - name: ref-genome-data
+          path: /data/ref_genome
+    outputs:
+      artifacts:
+        - name: final-results
+          path: /data/final_results

@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: nhrf-pipeline-
+spec:
+  entrypoint: nhrf-pipeline
+  artifactRepositoryRef:
+    configMap: nhrf-s3-repository
+    key: nhrf-s3-repository
+  templates:
+    - name: nhrf-pipeline
+      dag:
+        tasks:
+          - name: fast-qc-quality-control
+            template: fast-qc-quality-control
+
+    - name: fast-qc-quality-control
+      container:
+        image: quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0
+        command: ["sh", "-c", "mkdir -p tmp/fastqc_results && fastqc /tmp/SRR24141497_1.fastq.gz /tmp/SRR24141497_2.fastq.gz /tmp/SRR24141508_1.fastq.gz /tmp/SRR24141508_2.fastq.gz -o tmp/fastqc_results/"]
+      inputs:
+        artifacts:
+          - name: TUMOR_FASTQ1
+            path: tmp/SRR24141497_1.fastq.gz
+            s3:
+              key: TubularAdenoma_Data_for_running/SRR24141497_1.fastq.gz
+          - name: TUMOR_FASTQ2
+            path: tmp/SRR24141497_2.fastq.gz
+            s3:
+              key: TubularAdenoma_Data_for_running/SRR24141497_2.fastq.gz
+          - name: NORMAL_FASTQ1
+            path: tmp/SRR24141508_1.fastq.gz
+            s3:
+              key: TubularAdenoma_Data_for_running/SRR24141508_1.fastq.gz
+          - name: NORMAL_FASTQ2
+            path: tmp/SRR24141508_2.fastq.gz
+            s3:
+              key: TubularAdenoma_Data_for_running/SRR24141508_2.fastq.gz                            
+      outputs:
+        artifacts:
+        - name: fastqc-results
+          path: tmp/fastqc_results
+          archive:
+            none: {}

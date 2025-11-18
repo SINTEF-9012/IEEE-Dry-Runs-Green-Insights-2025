@@ -1,0 +1,7 @@
+# Detailed statistics for base2 - Step Name, Avg Duration (s), StdDev Duration, Avg CO2 (g), StdDev CO2, Avg Energy (kWh), StdDev Energy
+1, "trimming", 1562.75, 208.629, 3.821, 0.0698463, 0.0482695, 0.000879102
+2, "alignment", 9229.25, 379.775, 24.8098, 0.898063, 0.313422, 0.0113429
+3, "mark-duplicates", 1809.75, 41.9009, 1.98225, 0.0234561, 0.02504, 0.000299107
+4, "create-fasta-index", 55.25, 5.76086, 0.0075, 0.00217945, 9.775e-05, 2.79318e-05
+5, "create-fasta-dict", 51, 2.91548, 0.00625, 0.00129904, 7.65e-05, 1.94229e-05
+6, "base-quality-score", 170.25, 8.40759, 0.01375, 0.00216506, 0.0001695, 2.88487e-05

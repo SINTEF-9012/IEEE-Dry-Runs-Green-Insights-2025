@@ -1,0 +1,8 @@
+# [run-4] conf5 - NHRF data for pipeline steps: Step, Step Name, Duration, CO2(g), Energy(kwh)
+1, "trimming", 3386, 4.716, 0.059582
+2, "alignment", 12304, 18.431, 0.232837
+3, "mark-duplicates", 1688, 1.446, 0.018267
+4, "create-fasta-index", 35, 0.008, 0.000098
+5, "create-fasta-dict", 34, 0.007, 0.000097
+6, "base-quality-score", 165, 0.017, 0.000218
+

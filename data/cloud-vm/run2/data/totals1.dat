@@ -1,0 +1,6 @@
+# NHRF totals - Pipeline Nr, Pipeline Name, Duration (s), CO2 (g), Energy (kWh)
+1, "conf1", 12866, 31.532, 0.398353
+2, "conf2", 12226, 29.984, 0.378785
+3, "combined", 12824, 32.333, 0.408996
+4, "conf3", 8376, 23.445, 0.296180
+

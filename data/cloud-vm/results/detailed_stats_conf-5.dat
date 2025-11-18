@@ -1,0 +1,7 @@
+# Detailed statistics for conf-5 - Step Name, Avg Duration (s), StdDev Duration, Avg CO2 (g), StdDev CO2, Avg Energy (kWh), StdDev Energy
+1, "trimming", 3402, 22.8583, 4.7715, 0.0534813, 0.0602465, 0.000658406
+2, "alignment", 12312.2, 36.7313, 18.4763, 0.0591413, 0.233407, 0.000749104
+3, "mark-duplicates", 1673.75, 11.7127, 1.438, 0.0115542, 0.0181688, 0.000146824
+4, "create-fasta-index", 36.25, 0.829156, 0.00725, 0.000829156, 8.775e-05, 7.94906e-06
+5, "create-fasta-dict", 36, 1.41421, 0.00675, 0.000433013, 8.7e-05, 7.71362e-06
+6, "base-quality-score", 177.5, 9.75961, 0.02475, 0.00454835, 0.0003155, 5.68617e-05

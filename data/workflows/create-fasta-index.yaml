@@ -1,0 +1,134 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: fasta-index-test-
+spec:
+  entrypoint: fasta-index-pipeline
+  templates:
+  - name: fasta-index-pipeline
+    dag:
+      tasks:
+      - name: create-fasta-index
+        template: create-fasta-index
+        arguments:
+          artifacts:
+            - name: ref-genome-data
+              s3:
+                key: nhrf/reference_genome
+                bucket: artifacts
+                endpoint: simpipe-minio.default.svc.cluster.local:9000
+                insecure: true
+                accessKeySecret:
+                  name: simpipe-minio
+                  key: root-user
+                secretKeySecret:
+                  name: simpipe-minio
+                  key: root-password
+      - name: verify-index
+        depends: "create-fasta-index.Succeeded"
+        template: verify-index
+        arguments:
+          artifacts:
+            - name: ref-genome-data
+              s3:
+                key: nhrf/reference_genome
+                bucket: artifacts
+                endpoint: simpipe-minio.default.svc.cluster.local:9000
+                insecure: true
+                accessKeySecret:
+                  name: simpipe-minio
+                  key: root-user
+                secretKeySecret:
+                  name: simpipe-minio
+                  key: root-password
+            - name: fasta-index
+              from: "{{tasks.create-fasta-index.outputs.artifacts.fasta-index}}"
+
+  - name: create-fasta-index
+    container:
+      image: quay.io/biocontainers/samtools:1.17--h00cdaf9_0
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "Creating FASTA index for reference genome..."
+
+          echo "Contents of input directory:"
+          ls -lah /data/ref_genome/
+
+          # Create output directory for just the index file
+          mkdir -p /data/fasta_index/
+
+          # Create FASTA index directly from input location
+          samtools faidx /data/ref_genome/Homo_sapiens_assembly38.fasta
+
+          # Copy only the .fai file to output
+          cp /data/ref_genome/Homo_sapiens_assembly38.fasta.fai /data/fasta_index/
+
+          echo "FASTA index created successfully. Output:"
+          ls -lah /data/fasta_index/
+      resources:
+        requests:
+          memory: "2Gi"
+          cpu: "1"
+          ephemeral-storage: "10Gi"
+        limits:
+          memory: "4Gi"
+          cpu: "1"
+          ephemeral-storage: "10Gi"
+    inputs:
+      artifacts:
+        - name: ref-genome-data
+          path: /data/ref_genome
+    outputs:
+      artifacts:
+        - name: fasta-index
+          path: /data/fasta_index
+
+  - name: verify-index
+    container:
+      image: quay.io/biocontainers/samtools:1.17--h00cdaf9_0
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "Verifying FASTA index files..."
+
+          echo "Contents of index directory:"
+          ls -lah /data/fasta_index/
+
+          echo "Contents of reference genome directory:"
+          ls -lah /data/ref_genome/
+
+          # Copy the index file to the reference genome directory
+          cp /data/fasta_index/Homo_sapiens_assembly38.fasta.fai /data/ref_genome/
+
+          echo "Checking if .fai file exists:"
+          if [ -f "/data/ref_genome/Homo_sapiens_assembly38.fasta.fai" ]; then
+            echo "✓ FASTA index file found!"
+            echo "Index file size:"
+            ls -lh /data/ref_genome/Homo_sapiens_assembly38.fasta.fai
+            echo "First few lines of index:"
+            head -5 /data/ref_genome/Homo_sapiens_assembly38.fasta.fai
+          else
+            echo "✗ FASTA index file NOT found!"
+            exit 1
+          fi
+
+          echo "Testing samtools faidx functionality:"
+          samtools faidx /data/ref_genome/Homo_sapiens_assembly38.fasta chr1:1-100
+
+          echo "Index verification completed successfully!"
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "1"
+          ephemeral-storage: "10Gi"
+        limits:
+          memory: "2Gi"
+          cpu: "1"
+          ephemeral-storage: "10Gi"
+    inputs:
+      artifacts:
+        - name: ref-genome-data
+          path: /data/ref_genome
+        - name: fasta-index
+          path: /data/fasta_index

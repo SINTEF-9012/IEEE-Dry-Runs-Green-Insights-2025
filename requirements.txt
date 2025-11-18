@@ -1,0 +1,22 @@
+# Python Dependencies for IEEE Dry Runs Green Insights Analysis
+#
+# This repository uses uv for dependency management.
+# To set up the environment:
+#   cd data/mainframe
+#   uv sync
+#
+# Alternatively, you can install dependencies with pip:
+#   pip install -r requirements.txt
+#
+# Note: Python 3.11 or higher is required
+
+ipykernel>=6.29.5
+boto3>=1.35.97
+pymongo>=4.14.0
+pandas>=2.3.1
+xlrd>=2.0.2
+matplotlib>=3.10.5
+
+# Additional tools for running Jupyter notebooks
+jupyter>=1.0.0
+notebook>=7.0.0

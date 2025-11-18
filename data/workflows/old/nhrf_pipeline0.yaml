@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: nhrf-get-s3-
+spec:
+  entrypoint: nhrf-get-s3
+  templates:
+    - name: nhrf-get-s3
+      dag:
+        tasks:
+          - name: get-data
+            template: get-data
+
+    - name: get-data
+      container:
+        image: amazon/aws-cli:latest
+        command: ["/bin/sh", "-c"]
+        args: [
+          "aws s3 cp s3://nhrf/TubularAdenoma_Data_for_running/SRR24141497_1.fastq.gz /data/fastq-data/SRR24141497_1.fastq.gz",
+          "aws s3 cp s3://nhrf/TubularAdenoma_Data_for_running/SRR24141497_2.fastq.gz /data/fastq-data/SRR24141497_2.fastq.gz",
+          "aws s3 cp s3://nhrf/TubularAdenoma_Data_for_running/SRR24141508_1.fastq.gz /data/fastq-data/SRR24141508_1.fastq.gz",
+          "aws s3 cp s3://nhrf/TubularAdenoma_Data_for_running/SRR24141508_2.fastq.gz /data/fastq-data/SRR24141508_2.fastq.gz"
+        ]
+        env:
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: s3-nhrf
+                key: accessKey
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: s3-nhrf
+                key: secretKey
+      outputs:
+        artifacts:
+          - name: fastq-data
+            path: /data/fastq-data

@@ -1,0 +1,94 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: nhrf-pipeline-
+spec:
+  entrypoint: nhrf-pipeline
+  artifactRepositoryRef:
+    configMap: artifact-repositories # Default repository for outputs
+    key: default-v1
+  templates:
+    # Main pipeline template
+    - name: nhrf-pipeline
+      dag:
+        tasks:
+          - name: sync-inputs-to-local-s3
+            template: sync-inputs-to-local-s3
+          - name: fast-qc-quality-control
+            template: fast-qc-quality-control
+            dependencies: [sync-inputs-to-local-s3]
+
+    # Pre-processing step: Sync inputs to local MinIO
+    - name: sync-inputs-to-local-s3
+      container:
+        image: ubuntu:22.04
+        env:
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: s3-nhrf
+                key: accessKey
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: s3-nhrf
+                key: secretKey
+        command: [sh, -c]
+        args:
+          - >
+            export DEBIAN_FRONTEND=noninteractive &&
+            ln -fs /usr/share/zoneinfo/Europe/Oslo /etc/localtime &&
+            echo "Europe/Oslo" > /etc/timezone &&
+            apt-get update && apt-get install -y awscli ntpdate &&
+            ntpdate pool.ntp.org &&
+            aws s3 cp s3://nhrf/TubularAdenoma_Data_for_running/SRR24141497_1.fastq.gz /tmp/SRR24141497_1.fastq.gz &&
+            aws s3 cp s3://nhrf/TubularAdenoma_Data_for_running/SRR24141497_2.fastq.gz /tmp/SRR24141497_2.fastq.gz &&
+            aws s3 cp s3://nhrf/TubularAdenoma_Data_for_running/SRR24141508_1.fastq.gz /tmp/SRR24141508_1.fastq.gz &&
+            aws s3 cp s3://nhrf/TubularAdenoma_Data_for_running/SRR24141508_2.fastq.gz /tmp/SRR24141508_2.fastq.gz &&
+            mc alias set local http://minio:9000 accesskey secretkey &&
+            mc cp /tmp/SRR24141497_1.fastq.gz nhrf/SRR24141497_1.fastq.gz &&
+            mc cp /tmp/SRR24141497_2.fastq.gz nhrf/SRR24141497_2.fastq.gz &&
+            mc cp /tmp/SRR24141508_1.fastq.gz nhrf/SRR24141508_1.fastq.gz &&
+            mc cp /tmp/SRR24141508_2.fastq.gz nhrf/SRR24141508_2.fastq.gz
+
+    # Main FastQC task: Reads from local MinIO
+    - name: fast-qc-quality-control
+      container:
+        image: quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0
+        command: ["sh", "-c", "mkdir -p tmp/fastqc_results && fastqc SRR24141497_1.fastq.gz SRR24141497_2.fastq.gz SRR24141508_1.fastq.gz SRR24141508_2.fastq.gz -o tmp/fastqc_results/"]
+      inputs:
+        artifacts:
+          - name: TUMOR_FASTQ1
+            path: SRR24141497_1.fastq.gz
+            s3:
+              endpoint: http://minio:9000
+              bucket: nhrf
+              key: SRR24141497_1.fastq.gz
+              insecure: true
+          - name: TUMOR_FASTQ2
+            path: SRR24141497_2.fastq.gz
+            s3:
+              endpoint: http://minio:9000
+              bucket: nhrf
+              key: SRR24141497_2.fastq.gz
+              insecure: true
+          - name: NORMAL_FASTQ1
+            path: SRR24141508_1.fastq.gz
+            s3:
+              endpoint: http://minio:9000
+              bucket: nhrf
+              key: SRR24141508_1.fastq.gz
+              insecure: true
+          - name: NORMAL_FASTQ2
+            path: SRR24141508_2.fastq.gz
+            s3:
+              endpoint: http://minio:9000
+              bucket: nhrf
+              key: SRR24141508_2.fastq.gz
+              insecure: true
+      outputs:
+        artifacts:
+          - name: fastqc-results
+            path: tmp/fastqc_results
+            s3:
+              key: fastqc-results/

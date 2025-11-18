@@ -1,0 +1,39 @@
+{
+    "input": {
+        "data": {
+            "dryRun": {
+                "node": {
+                    "metrics": {
+                        "cpuUsageSecondsTotal": [
+                            {
+                                "timestamp": 1755364688,
+                                "value": "0.041888"
+                            },
+                            {
+                                "timestamp": 1755364689,
+                                "value": "0.041888"
+                            },
+                            {
+                                "timestamp": 1755364690,
+                                "value": "0.041888"
+                            },
+                            {
+                                "timestamp": 1755364691,
+                                "value": "0.041888"
+                            },
+                            {
+                                "timestamp": 1755364692,
+                                "value": "0.041888"
+                            },
+                            {
+                                "timestamp": 1755364693,
+                                "value": "0.041888"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}
+

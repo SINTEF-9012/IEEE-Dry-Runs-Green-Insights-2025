@@ -1,0 +1,5 @@
+# [run-3] NHRF totals - Pipeline Nr, Pipeline Name, Duration (s), CO2 (g), Energy (kWh)
+1, "base1", 12790, 31.42, 0.396939
+2, "base2", 12739, 30.069, 0.379851
+3, "optimized", 12527, 31.504, 0.398003
+4, "optimized2", 8167, 23.458, 0.296355

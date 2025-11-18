@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you use this dataset, please cite it as below."
+type: dataset
+title: "Supplementary Data for: Dry Runs, Green Insights - A Framework for Environmental Impact Assessment of Containerised Big Data Pipelines"
+authors:
+  - family-names: "Gøran"
+    given-names: "Brekke Svaland"
+    orcid: "https://orcid.org/0000-0002-3172-746X"
+  - family-names: "Arda"
+    given-names: "Gnokil"
+    orcid: "https://orcid.org/0000-0002-2170-2066"
+  - family-names: "Nikolay"
+    given-names: "Nikolov"
+    orcid: "https://orcid.org/0000-0003-3266-0751"
+  - family-names: "Dimitru"
+    given-names: "Roman"
+  - family-names: "Pedram"
+    given-names: "Bakhtiarifard"
+    orcid: "https://orcid.org/0009-0004-8904-4858"
+  - family-names: "Raghavendra"
+    given-names: "Salvan"
+    orcid: "https://orcid.org/0000-0003-4302-0207"
+repository-code: "https://github.com/[username]/IEEE-Dry-Runs-Green-Insights-2025"
+abstract: |
+  This repository contains supplementary data, analysis scripts, and results from experiments
+  evaluating the environmental impact of containerized big data pipelines. The research uses
+  the NHRF bioinformatics use-case to compare different pipeline optimization strategies using
+  dual measurement approaches: CarbonTracker (software-based) and Tapo P115 smart plug 
+  (hardware-based) for energy and CO2 monitoring.
+keywords:
+  - environmental impact
+  - carbon footprint
+  - big data pipelines
+  - containerization
+  - bioinformatics
+  - energy monitoring
+  - green computing
+license: MIT
+# doi: 10.xxxx/xxxxx  # Add DOI once published
+# date-released: 2025-XX-XX  # Add publication date

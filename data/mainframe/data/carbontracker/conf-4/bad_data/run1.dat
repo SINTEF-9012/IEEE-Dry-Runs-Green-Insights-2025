@@ -1,0 +1,7 @@
+# run1 - conf-4
+step  start   stop    duration    co2 energy  status  output
+trimming	2025-08-28T18:53:13Z	2025-08-28T19:12:19Z	1146	1.209	0.040199	Succeeded	trimming-results*
+alignment	2025-08-28T19:12:29Z	2025-08-28T20:26:41Z	4452	6.505	0.216249	Succeeded	alignment-results*
+create-fasta-index	2025-08-28T20:26:51Z	2025-08-28T20:27:48Z	57	0.005	0.000164	Succeeded	fasta-index*
+mark-duplicates	2025-08-28T20:27:58Z	2025-08-28T20:50:45Z	1367	0.489	0.016254	Succeeded	mark-duplicates-results*
+base-quality-score	2025-08-28T20:50:55Z	2025-08-28T20:53:17Z	142	0.006	0.000190	Succeeded	final-results*

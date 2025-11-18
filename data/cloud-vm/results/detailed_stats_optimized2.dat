@@ -1,0 +1,7 @@
+# Detailed statistics for optimized2 - Step Name, Avg Duration (s), StdDev Duration, Avg CO2 (g), StdDev CO2, Avg Energy (kWh), StdDev Energy
+1, "trimming", 1172.75, 6.75925, 3.00825, 0.0169318, 0.038004, 0.000215542
+2, "alignment", 5058, 19.4165, 19.024, 0.0654102, 0.240331, 0.000825451
+3, "mark-duplicates", 1656.5, 14.9248, 1.46, 0.0143003, 0.0184443, 0.000182293
+4, "create-fasta-index", 114.75, 133.027, 0.006, 0.00173205, 7.725e-05, 2.26647e-05
+5, "create-fasta-dict", 40.75, 6.2998, 0.00625, 0.00192029, 7.875e-05, 2.00671e-05
+6, "base-quality-score", 147.25, 18.74, 0.01575, 0.00389711, 0.00019825, 4.90733e-05

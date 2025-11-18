@@ -1,0 +1,15 @@
+[project]
+name = "upcast-datapipelines"
+version = "0.1.0"
+description = "UPCAST Data Pipelines"
+authors = [{name = "Gøran Brekke Svaland", email = "goran.svaland@sintef.no"}]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ipykernel>=6.29.5",
+    "boto3>=1.35.97",
+    "pymongo>=4.14.0",
+    "pandas>=2.3.1",
+    "xlrd>=2.0.2",
+    "matplotlib>=3.10.5",
+]
