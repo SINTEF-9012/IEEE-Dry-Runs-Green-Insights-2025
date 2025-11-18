@@ -8,7 +8,10 @@ Supplementary data and analysis code for the research paper:
 
 This repository contains experimental data, analysis scripts, and results from comprehensive experiments evaluating the environmental impact of containerized big data pipelines. The research uses the NHRF bioinformatics use-case to compare different pipeline optimization strategies through dual measurement approaches:
 
-- **CarbonTracker**: Software-based energy and CO2 monitoring
+1. On a cloud VM
+- **SIMPIPE/Carbontracker**: To evaluate data pipeline configurations in terms of energy and co2 optimization
+2. On local hardware (mainframe)
+- **SIMPIPE/Carbontracker**: Measure overall pipeline energy and co2 consumption
 - **Tapo P115 Smart Plug**: Hardware-based power measurement
 
 ## Repository Structure
@@ -54,6 +57,7 @@ This repository contains experimental data, analysis scripts, and results from c
 All experimental data is organized in the `data/` directory:
 - **Cloud VM experiments**: See `data/cloud-vm/README.md`
 - **Mainframe experiments**: See `data/mainframe/README.md`
+- **Workflows**: See `data/workflows/README.md`
 
 ### Reproducing the Analysis
 
@@ -154,8 +158,8 @@ If you use this data or code, please cite:
 # Paper citation (to be added upon publication)
 @article{dryrunsgreen2025,
   title={Dry Runs, Green Insights: A Framework for Environmental Impact Assessment of Containerised Big Data Pipelines},
-  author={[Authors]},
-  journal={[Journal]},
+  author={Svaland, Nikolov, Goknil, Bakhtiarifard, Selvan, Roman},
+  journal={IEEE Transactions on Sustainable Computing},
   year={2025},
   doi={[DOI]}
 }
@@ -171,8 +175,16 @@ This repository is licensed under the MIT License. See [LICENSE](LICENSE) for de
 ## Related Projects
 
 - **SIMPIPE**: Container orchestration framework for data pipelines
+  * [SIM-PIPE](https://github.com/DataCloud-project/SIM-PIPE/tree/main)
 - **CarbonTracker**: Energy and CO2 monitoring tool
-- **UPCAST**: Framework for containerized pipeline execution
+  * [carbontracker](https://github.com/saintslab/carbontracker)
+
+### EU Projects
+- [enRichMyData](https://enrichmydata.eu/): EU project no: 101070284  
+- [UPCAST](https://www.upcast-project.eu/): EU project no: 101093216
+- [DATAPACT](https://datapact.eu/): EU project no: 101189771
+- [ENFIELD](https://enfield-project.eu/about): EU project no: 101120657
+- [CauseFinder](https://causefinder.ase.ro/): PNRR 760049
 
 ## Contact
 
