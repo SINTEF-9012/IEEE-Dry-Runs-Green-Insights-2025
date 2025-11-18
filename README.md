@@ -50,9 +50,8 @@ This repository contains experimental data, analysis scripts, and results from c
 │       └── pyproject.toml   # Python config
 ```
 
-## Quick Start
 
-### Viewing the Data
+## Viewing the Data
 
 All experimental data is organized in the `data/` directory:
 - **Cloud VM experiments**: See `data/cloud-vm/README.md`
