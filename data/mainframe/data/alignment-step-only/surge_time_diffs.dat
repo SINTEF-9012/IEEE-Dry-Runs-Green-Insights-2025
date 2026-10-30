@@ -1,0 +1,7 @@
+# power surge and carbontracker time differences (minutes) - NHRF alignment step only
+configuration   runNr   startDiff   endDiff duration
+power-surge 1   0.10    -0.06   94.6
+power-surge 2   0.06    -0.04   95.7
+power-surge 3   0.05    -0.02   93.8
+power-surge 4   -0.10   -0.03   95.4
+

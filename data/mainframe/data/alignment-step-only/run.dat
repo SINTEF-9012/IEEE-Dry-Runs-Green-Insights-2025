@@ -1,0 +1,7 @@
+# run1,2,3,4 - nhrf-alignment-step-only
+step    start   stop    duration    co2 energy  status
+Run	Start time	Finish time	Duration	CO₂eq (g)	Energy (kWh)
+nhrf-alignment-wfnqf	2026-10-29T17:01:12	2026-10-29T18:36:38	1h 35m 26s	9.250	0.307501
+nhrf-alignment-rjrn2	2026-10-29T14:57:13	2026-10-29T16:31:04	1h 33m 51s	9.112	0.302937
+nhrf-alignment-sd6bg	2026-10-29T12:51:24	2026-10-29T14:27:06	1h 35m 42s	9.236	0.307037
+nhrf-alignment-ffbtk	2026-10-29T10:33:56	2026-10-29T12:08:34	1h 34m 38s	9.164	0.304664

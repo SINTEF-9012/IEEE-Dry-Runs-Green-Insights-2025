@@ -1,0 +1,4 @@
+# run4 - power-stress
+step  start   stop    duration    co2 energy  status
+power-stress(0:0)	2026-09-29T13:16:19Z	2026-09-29T16:16:27Z	10808	12.847	0.427090	Succeeded
+

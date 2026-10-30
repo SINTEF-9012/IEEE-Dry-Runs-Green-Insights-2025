@@ -1,0 +1,20 @@
+[
+  {
+    "test": "ANOVA: quantity by quarter",
+    "statistic": 11.323,
+    "p_value": 0.0,
+    "significant": true
+  },
+  {
+    "test": "T-test: West vs North",
+    "statistic": 0.256,
+    "p_value": 0.79775,
+    "significant": false
+  },
+  {
+    "test": "Pearson: lead_time vs stock",
+    "statistic": -0.008,
+    "p_value": 0.954995,
+    "significant": false
+  }
+]

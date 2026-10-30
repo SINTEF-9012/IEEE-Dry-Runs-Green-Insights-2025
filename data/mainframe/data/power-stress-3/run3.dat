@@ -1,0 +1,4 @@
+# run3 - power-stress
+step    start   stop    duration    co2 energy  status
+power-stress(0:0)	2026-10-26T07:32:31Z	2026-10-26T10:32:45Z	10814	96.329	3.202405	Error
+
