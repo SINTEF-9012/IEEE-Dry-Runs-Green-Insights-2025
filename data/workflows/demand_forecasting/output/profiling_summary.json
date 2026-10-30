@@ -1,0 +1,14 @@
+{
+  "inventory": {
+    "rows": 50,
+    "columns": 11
+  },
+  "sales_orders": {
+    "rows": 17357,
+    "columns": 7
+  },
+  "suppliers": {
+    "rows": 8,
+    "columns": 7
+  }
+}

@@ -1,0 +1,122 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: demand-forecasting-8gb-
+  labels:
+    pipeline: demand_forecasting
+    domain: Supply-Chain
+    type: ml-pipeline
+    steps: "10"
+spec:
+  entrypoint: pipeline
+  serviceAccountName: argo-workflow
+  podGC:
+    strategy: OnWorkflowCompletion
+
+  volumeClaimTemplates:
+  - metadata:
+      name: pipeline-output
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 3Gi
+
+  templates:
+  - name: pipeline
+    steps:
+    - - name: step-01
+        template: run-step
+        arguments:
+          parameters:
+          - name: script
+            value: step_01_data-loading-profiling.py
+    - - name: step-02
+        template: run-step
+        arguments:
+          parameters:
+          - name: script
+            value: step_02_data-merging-integration.py
+    - - name: step-03
+        template: run-step
+        arguments:
+          parameters:
+          - name: script
+            value: step_03_data-cleaning-standardization.py
+    - - name: step-04
+        template: run-step
+        arguments:
+          parameters:
+          - name: script
+            value: step_04_time-series-decomposition.py
+    - - name: step-05
+        template: run-step
+        arguments:
+          parameters:
+          - name: script
+            value: step_05_feature-engineering.py
+    - - name: step-06
+        template: run-step
+        arguments:
+          parameters:
+          - name: script
+            value: step_07_exploratory-data-analysis.py
+    - - name: step-07
+        template: run-step
+        arguments:
+          parameters:
+          - name: script
+            value: step_09_statistical-analysis.py
+    - - name: step-08
+        template: run-step
+        arguments:
+          parameters:
+          - name: script
+            value: step_11_model-training-forecasting.py
+    - - name: step-09
+        template: run-step
+        arguments:
+          parameters:
+          - name: script
+            value: step_14_inventory-optimization.py
+    - - name: step-10
+        template: run-step
+        arguments:
+          parameters:
+          - name: script
+            value: step_15_final-synthesis-report.py
+
+  - name: run-step
+    inputs:
+      parameters:
+      - name: script
+      artifacts:
+      - name: input-data
+        path: /pipeline/data
+        s3:
+          key: demand-forecasting/data-8GB
+          bucket: artifacts
+          endpoint: simpipe-minio.default.svc.cluster.local:9000
+          insecure: true
+          accessKeySecret:
+            name: simpipe-minio
+            key: rootUser
+          secretKeySecret:
+            name: simpipe-minio
+            key: rootPassword
+    container:
+      image: docker.io/narogus/demand-forecasting:v1
+      imagePullPolicy: IfNotPresent
+      command: [python]
+      args: ["/pipeline/scripts/{{inputs.parameters.script}}", "--data_dir", "/pipeline/data", "--output_dir", "/pipeline/output"]
+      volumeMounts:
+      - name: pipeline-output
+        mountPath: /pipeline/output
+      resources:
+        requests:
+          memory: "32Gi"
+          cpu: "500m"
+        limits:
+          memory: "32Gi"
+          cpu: "2000m"

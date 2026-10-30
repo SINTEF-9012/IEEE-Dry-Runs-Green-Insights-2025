@@ -1,0 +1,127 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: nhrf-alignment-
+spec:
+  entrypoint: nhrf-alignment
+  arguments:
+    parameters:
+      # S3 key of the trimmed FASTQ files from a previous trimming run.
+      # nhrf-trimming-step-only.yaml publishes to nhrf/trimmed_data.
+      # A default-repository key (e.g. <wf>/<pod>/trimming-results.tgz) also works;
+      # Argo extracts tarballs automatically.
+      - name: trimmed-data-key
+        value: nhrf-base1-8jw5n/nhrf-base1-8jw5n-trimming-1017256702/trimming-results.tgz
+  volumes:
+  - name: shared-workdir
+    emptyDir:
+      sizeLimit: 300Gi
+  templates:
+  - name: nhrf-alignment
+    dag:
+      tasks:
+      - name: alignment
+        template: alignment
+        arguments:
+          artifacts:
+            - name: trimming-results
+              s3:
+                key: "{{workflow.parameters.trimmed-data-key}}"
+                bucket: artifacts
+                endpoint: simpipe-minio.default.svc.cluster.local:9000
+                insecure: true
+                accessKeySecret:
+                  name: simpipe-minio
+                  key: rootUser
+                secretKeySecret:
+                  name: simpipe-minio
+                  key: rootPassword
+            - name: ref-genome-data
+              s3:
+                key: nhrf/reference_genome
+                bucket: artifacts
+                endpoint: simpipe-minio.default.svc.cluster.local:9000
+                insecure: true
+                accessKeySecret:
+                  name: simpipe-minio
+                  key: rootUser
+                secretKeySecret:
+                  name: simpipe-minio
+                  key: rootPassword
+
+  - name: alignment
+    container:
+      image: quay.io/biocontainers/mulled-v2-66534bcbb7031a148b13e2ad42583020b9cd25c4:8f2087d838e5270cd83b5a016667234429f16eea-0
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          export TMPDIR=/tmp/minimap_work
+          mkdir -p ${TMPDIR} /data/alignment_results
+
+          echo "Trimmed input files:"
+          ls -lah /data/trimmed_data
+
+          echo "Copying and indexing reference genome in temp directory..."
+          cp ${REF_GENOME_PATH}/${REF_GENOME_FILENAME} ${TMPDIR}/
+          cp ${REF_GENOME_PATH}/${REF_GENOME_FILENAME}.* ${TMPDIR}/
+
+          cd ${TMPDIR}
+          bwa index ${REF_GENOME_FILENAME}
+
+          echo "Running alignment with direct SAM->BAM conversion..."
+
+          echo "Processing tumor sample..."
+          minimap2 -ax sr -t 6 ${REF_GENOME_PATH}/${REF_GENOME_FILENAME} \
+                ${TTUMOR_FASTQ1} ${TTUMOR_FASTQ2} | \
+                samtools view -@ 6 -Sb - | \
+                samtools sort -@ 6 -m 2G -o /data/alignment_results/tumor_sorted.bam -
+
+          echo "Processing normal sample..."
+          minimap2 -ax sr -t 6 ${REF_GENOME_PATH}/${REF_GENOME_FILENAME} \
+                ${TNORMAL_FASTQ1} ${TNORMAL_FASTQ2} | \
+                samtools view -@ 6 -Sb - | \
+                samtools sort -@ 6 -m 2G -o /data/alignment_results/normal_sorted.bam -
+
+          # Index the BAM files
+          samtools index -@ 6 /data/alignment_results/tumor_sorted.bam
+          samtools index -@ 6 /data/alignment_results/normal_sorted.bam
+
+          # Clean up temp directory and input files to save space
+          cd /
+          rm -rf ${TMPDIR}
+          rm -f ${TTUMOR_FASTQ1} ${TTUMOR_FASTQ2} ${TNORMAL_FASTQ1} ${TNORMAL_FASTQ2}
+
+          echo "Alignment completed. Output files:"
+          ls -lah /data/alignment_results/
+      resources:
+        requests:
+          memory: "20Gi"
+          cpu: "6"
+          ephemeral-storage: "80Gi"
+        limits:
+          memory: "32Gi"
+          cpu: "6"
+          ephemeral-storage: "80Gi"
+      env:
+        - name: REF_GENOME_FILENAME
+          value: Homo_sapiens_assembly38.fasta
+        - name: REF_GENOME_PATH
+          value: /data/ref_genome
+        - name: TTUMOR_FASTQ1
+          value: /data/trimmed_data/trimmed_tumor_R1.fastq.gz
+        - name: TTUMOR_FASTQ2
+          value: /data/trimmed_data/trimmed_tumor_R2.fastq.gz
+        - name: TNORMAL_FASTQ1
+          value: /data/trimmed_data/trimmed_normal_R1.fastq.gz
+        - name: TNORMAL_FASTQ2
+          value: /data/trimmed_data/trimmed_normal_R2.fastq.gz
+    inputs:
+      artifacts:
+        - name: trimming-results
+          path: /data/trimmed_data
+        - name: ref-genome-data
+          path: /data/ref_genome
+    outputs:
+      artifacts:
+        - name: alignment-results
+          path: /data/alignment_results

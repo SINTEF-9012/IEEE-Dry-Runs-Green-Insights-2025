@@ -1,0 +1,108 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: nhrf-trimming-
+spec:
+  entrypoint: nhrf-trimming
+  volumes:
+  - name: shared-workdir
+    emptyDir:
+      sizeLimit: 300Gi
+  templates:
+  - name: nhrf-trimming
+    dag:
+      tasks:
+      - name: trimming
+        template: trimming
+        arguments:
+          artifacts:
+            - name: fastq-data
+              s3:
+                key: nhrf/samples
+                bucket: artifacts
+                endpoint: simpipe-minio.default.svc.cluster.local:9000
+                insecure: true
+                accessKeySecret:
+                  name: simpipe-minio
+                  key: rootUser
+                secretKeySecret:
+                  name: simpipe-minio
+                  key: rootPassword
+  
+
+  # Reused from Pipeline 1: fast, low energy
+  - name: trimming
+    container:
+      image: quay.io/biocontainers/fastp:0.23.4--h125f33a_4
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          # Use /tmp for intermediate processing to leverage fast storage
+          export TMPDIR=/tmp/fastp_work
+          mkdir -p ${TMPDIR} ${OUTDIR}
+
+          # Process tumor sample
+          fastp -i ${TUMOR_FASTQ1} -I ${TUMOR_FASTQ2} \
+                -o ${OUTDIR}/trimmed_tumor_R1.fastq.gz \
+                -O ${OUTDIR}/trimmed_tumor_R2.fastq.gz \
+                -h ${OUTDIR}/tumor_fastp.html \
+                -j ${OUTDIR}/tumor_fastp.json \
+                --thread 6
+
+          # Process normal sample
+          fastp -i ${NORMAL_FASTQ1} -I ${NORMAL_FASTQ2} \
+                -o ${OUTDIR}/trimmed_normal_R1.fastq.gz \
+                -O ${OUTDIR}/trimmed_normal_R2.fastq.gz \
+                -h ${OUTDIR}/normal_fastp.html \
+                -j ${OUTDIR}/normal_fastp.json \
+                --thread 6
+
+          # Clean up temp directory
+          rm -rf ${TMPDIR}
+
+          # List outputs for verification
+          ls -lah ${OUTDIR}
+      resources:
+        requests:
+          memory: "4Gi"
+          cpu: "6"
+          ephemeral-storage: "50Gi"
+        limits:
+          memory: "8Gi"
+          cpu: "6"
+          ephemeral-storage: "50Gi"
+      env:
+        - name: OUTDIR
+          value: /data/trimmed_data
+        - name: TUMOR_FASTQ1
+          value: /data/fastq_data/SRR24141497_1.fastq.gz
+        - name: TUMOR_FASTQ2
+          value: /data/fastq_data/SRR24141497_2.fastq.gz
+        - name: NORMAL_FASTQ1
+          value: /data/fastq_data/SRR24141508_1.fastq.gz
+        - name: NORMAL_FASTQ2
+          value: /data/fastq_data/SRR24141508_2.fastq.gz
+    inputs:
+      artifacts:
+        - name: fastq-data
+          path: /data/fastq_data
+    outputs:
+      artifacts:
+        - name: trimming-results
+          path: /data/trimmed_data
+          # Fixed key so nhrf-alignment-step-only.yaml can reuse this output
+          archive:
+            none: {}
+          s3:
+            key: nhrf/trimmed_data
+            bucket: artifacts
+            endpoint: simpipe-minio.default.svc.cluster.local:9000
+            insecure: true
+            accessKeySecret:
+              name: simpipe-minio
+              key: rootUser
+            secretKeySecret:
+              name: simpipe-minio
+              key: rootPassword
+
+  

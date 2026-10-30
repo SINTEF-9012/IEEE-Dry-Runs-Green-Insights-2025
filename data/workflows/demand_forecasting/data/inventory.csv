@@ -1,0 +1,51 @@
+sku_id,product_name,category,unit_cost,unit_price,supplier,lead_time_days,reorder_point,safety_stock,current_stock,is_seasonal
+SKU_0001,Office Item 1,Office,160.33,299.32,PrimeDistributors,14,40,48,71,1
+SKU_0002,Apparel Item 2,Apparel,145.79,492.35,PrimeDistributors,3,40,42,117,1
+SKU_0003,Sports Item 3,Sports,9.5,24.22,GlobalSupply Co,7,34,12,62,1
+SKU_0004,Office Item 4,Office,7.59,25.69,Pacific Trading,10,28,35,36,1
+SKU_0005,Sports Item 5,Sports,28.8,71.72,FastShip Inc,3,100,45,94,1
+SKU_0006,Beauty Item 6,Beauty,106.41,275.97,Metro Wholesale,5,165,35,78,1
+SKU_0007,Sports Item 7,Sports,121.59,406.57,Summit Logistics,3,59,30,111,0
+SKU_0008,Apparel Item 8,Apparel,193.22,524.41,Pacific Trading,5,176,24,324,0
+SKU_0009,Electronics Item 9,Electronics,155.59,295.22,GlobalSupply Co,3,158,26,417,1
+SKU_0010,Home Goods Item 10,Home Goods,19.44,43.1,GlobalSupply Co,5,154,18,345,0
+SKU_0011,Automotive Item 11,Automotive,77.31,219.38,PrimeDistributors,10,191,49,510,1
+SKU_0012,Apparel Item 12,Apparel,51.02,102.66,QualityParts Ltd,3,34,35,76,0
+SKU_0013,Office Item 13,Office,179.67,440.32,Pacific Trading,10,151,39,445,1
+SKU_0014,Home Goods Item 14,Home Goods,44.6,151.0,Metro Wholesale,10,105,37,102,1
+SKU_0015,Electronics Item 15,Electronics,25.57,61.7,EcoSource,5,103,39,166,1
+SKU_0016,Electronics Item 16,Electronics,67.01,115.26,Metro Wholesale,5,140,22,254,0
+SKU_0017,Automotive Item 17,Automotive,109.15,269.56,Summit Logistics,10,191,33,406,0
+SKU_0018,Electronics Item 18,Electronics,83.75,136.49,PrimeDistributors,5,31,48,49,1
+SKU_0019,Electronics Item 19,Electronics,199.56,405.82,FastShip Inc,30,73,32,160,0
+SKU_0020,Food Item 20,Food,100.44,348.66,Pacific Trading,5,87,20,203,0
+SKU_0021,Beauty Item 21,Beauty,76.72,212.1,QualityParts Ltd,10,158,25,121,0
+SKU_0022,Beauty Item 22,Beauty,140.68,452.53,QualityParts Ltd,7,183,28,373,0
+SKU_0023,Sports Item 23,Sports,130.81,241.83,QualityParts Ltd,10,147,48,385,1
+SKU_0024,Sports Item 24,Sports,148.37,284.59,FastShip Inc,7,61,44,50,1
+SKU_0025,Automotive Item 25,Automotive,113.26,289.87,Pacific Trading,5,67,21,57,1
+SKU_0026,Electronics Item 26,Electronics,59.38,172.24,Summit Logistics,14,167,33,86,1
+SKU_0027,Sports Item 27,Sports,21.41,39.04,QualityParts Ltd,21,103,44,155,0
+SKU_0028,Electronics Item 28,Electronics,5.99,10.91,EcoSource,7,73,44,212,0
+SKU_0029,Electronics Item 29,Electronics,101.31,188.2,GlobalSupply Co,7,155,16,210,1
+SKU_0030,Automotive Item 30,Automotive,23.27,52.02,Metro Wholesale,5,177,47,276,0
+SKU_0031,Automotive Item 31,Automotive,128.07,395.69,Summit Logistics,7,47,42,110,0
+SKU_0032,Home Goods Item 32,Home Goods,116.54,353.94,PrimeDistributors,3,191,37,194,1
+SKU_0033,Beauty Item 33,Beauty,77.18,118.16,EcoSource,21,65,40,138,1
+SKU_0034,Office Item 34,Office,64.61,121.58,Metro Wholesale,5,86,27,51,0
+SKU_0035,Apparel Item 35,Apparel,186.35,305.77,FastShip Inc,5,194,31,185,0
+SKU_0036,Electronics Item 36,Electronics,170.49,302.32,GlobalSupply Co,14,58,38,63,1
+SKU_0037,Automotive Item 37,Automotive,183.08,461.85,Metro Wholesale,7,192,29,349,0
+SKU_0038,Automotive Item 38,Automotive,14.9,48.77,Metro Wholesale,3,117,11,298,0
+SKU_0039,Home Goods Item 39,Home Goods,95.79,247.64,Metro Wholesale,5,77,31,79,0
+SKU_0040,Office Item 40,Office,75.24,131.98,PrimeDistributors,7,72,14,116,0
+SKU_0041,Automotive Item 41,Automotive,108.61,280.35,FastShip Inc,10,71,25,37,1
+SKU_0042,Beauty Item 42,Beauty,13.01,29.89,Pacific Trading,7,77,35,151,0
+SKU_0043,Electronics Item 43,Electronics,139.26,225.1,Summit Logistics,21,53,41,158,1
+SKU_0044,Food Item 44,Food,59.59,203.19,EcoSource,14,88,31,123,0
+SKU_0045,Apparel Item 45,Apparel,74.41,224.4,EcoSource,3,88,39,228,1
+SKU_0046,Automotive Item 46,Automotive,24.08,59.8,FastShip Inc,7,52,39,139,0
+SKU_0047,Beauty Item 47,Beauty,128.84,204.93,PrimeDistributors,7,166,41,297,0
+SKU_0048,Sports Item 48,Sports,125.09,423.78,FastShip Inc,21,147,41,380,0
+SKU_0049,Home Goods Item 49,Home Goods,130.44,315.21,Summit Logistics,7,120,21,343,1
+SKU_0050,Apparel Item 50,Apparel,45.3,92.77,FastShip Inc,5,65,11,45,0

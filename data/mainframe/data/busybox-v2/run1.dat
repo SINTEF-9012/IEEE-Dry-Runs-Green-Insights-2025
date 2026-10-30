@@ -1,0 +1,4 @@
+# run1 - busybox
+step  start   stop    duration    co2 energy  status  output
+cpu-burn(0:0)	2026-08-11T09:55:23Z	2026-08-11T10:55:39Z	3616	4.278	0.142236	Succeeded	-
+

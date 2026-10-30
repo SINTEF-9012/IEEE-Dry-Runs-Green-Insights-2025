@@ -1,0 +1,5 @@
+{
+  "pipeline": "demand_forecasting",
+  "skus": 50,
+  "scenarios_analyzed": 4
+}

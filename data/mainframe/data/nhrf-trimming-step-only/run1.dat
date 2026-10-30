@@ -1,0 +1,5 @@
+# run1 - nhrf-trimming-step-only
+step    start   stop    duration    co2 energy  status
+trimming	2026-10-23T09:50:34Z	2026-10-23T10:09:43Z	1149	1.207	0.040118	Succeeded
+
+

@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: busybox-singlejob
+  labels:
+    pipeline: busybox_singlejob
+    type: single-job
+    steps: "1"
+spec:
+  entrypoint: cpu-burn
+  serviceAccountName: argo-workflow
+  podGC:
+    strategy: OnWorkflowCompletion
+  arguments:
+    parameters:
+    - name: run-seconds
+      value: "10800"
+
+  templates:
+  - name: cpu-burn
+    inputs:
+      parameters:
+      - name: run-seconds
+        value: "{{workflow.parameters.run-seconds}}"
+    container:
+      image: narogus/cpu-burn:v1
+      imagePullPolicy: IfNotPresent
+      env:
+      - name: RUN_SECONDS
+        value: "{{inputs.parameters.run-seconds}}"
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "71000m"
+        limits:
+          memory: "64Mi"
+          cpu: "71000m"

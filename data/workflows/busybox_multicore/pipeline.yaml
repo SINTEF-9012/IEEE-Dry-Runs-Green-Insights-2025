@@ -1,0 +1,77 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: busybox-multicore
+  labels:
+    pipeline: busybox_multicore
+    type: multi-job
+    steps: "1"
+spec:
+  entrypoint: cpu-burn-fanout
+  serviceAccountName: argo-workflow
+  podGC:
+    strategy: OnWorkflowCompletion
+  arguments:
+    parameters:
+    # How long each burn pod runs for.
+    - name: run-seconds
+      value: "10800"
+    # Number of pods to run concurrently. Each pod can land on a different
+    # node, so this is the main lever for raising cluster-wide utilization
+    # rather than just saturating a single node.
+    - name: replicas
+      value: "1"
+    # CPU request/limit per pod. Keep this equal to cpu-workers-per-pod so
+    # every core the pod is granted actually gets a busy-loop worker.
+    - name: cpu-per-pod
+      value: "4000m"
+    - name: cpu-workers-per-pod
+      value: "7"
+    - name: memory-per-pod
+      value: "128Mi"
+
+  templates:
+  - name: cpu-burn-fanout
+    inputs:
+      parameters:
+      - name: run-seconds
+        value: "{{workflow.parameters.run-seconds}}"
+      - name: replicas
+        value: "{{workflow.parameters.replicas}}"
+    steps:
+    - - name: cpu-burn
+        template: cpu-burn
+        arguments:
+          parameters:
+          - name: run-seconds
+            value: "{{inputs.parameters.run-seconds}}"
+        withSequence:
+          count: "{{inputs.parameters.replicas}}"
+
+  - name: cpu-burn
+    inputs:
+      parameters:
+      - name: run-seconds
+        value: "{{workflow.parameters.run-seconds}}"
+    # resources.requests/limits are typed as Kubernetes resource.Quantity,
+    # so they can't be templated directly with {{...}} (Argo/K8s validate
+    # the raw string against the quantity regex before substitution runs).
+    # podSpecPatch is a plain string field, so it IS substituted first.
+    podSpecPatch: |
+      containers:
+      - name: main
+        resources:
+          requests:
+            memory: "{{workflow.parameters.memory-per-pod}}"
+            cpu: "{{workflow.parameters.cpu-per-pod}}"
+          limits:
+            memory: "{{workflow.parameters.memory-per-pod}}"
+            cpu: "{{workflow.parameters.cpu-per-pod}}"
+    container:
+      image: narogus/cpu-burn:v2
+      imagePullPolicy: IfNotPresent
+      env:
+      - name: RUN_SECONDS
+        value: "{{inputs.parameters.run-seconds}}"
+      - name: CPU_WORKERS
+        value: "{{workflow.parameters.cpu-workers-per-pod}}"

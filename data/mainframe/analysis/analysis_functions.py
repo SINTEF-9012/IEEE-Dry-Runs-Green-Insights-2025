@@ -79,9 +79,13 @@ def divide_power_data_into_step_periods(time_periods: list, power_dataframe: pd.
             #data_periods.append({"Date": [], "Energy(kWh)": [], "Power(W)": []})
 
         if name == "baseline":
-            print("        Setting baseline energy and power values from baseline step.")
-            baseline_energy = stats['filtered_data']['Energy(kWh)'].mean()
-            baseline_power = stats['filtered_data']['Power(W)'].mean()
+            if stats['filtered_data'].empty:
+                print("        Warning! No data for baseline period -- baseline_energy/baseline_power left at 0. "
+                      "Check that start_time_baseline/end_time_baseline fall within the Tapo data's date range.")
+            else:
+                print("        Setting baseline energy and power values from baseline step.")
+                baseline_energy = stats['filtered_data']['Energy(kWh)'].mean()
+                baseline_power = stats['filtered_data']['Power(W)'].mean()
 
 
         if n_time_periods == counter:
@@ -371,46 +375,74 @@ def compute_surge_vs_simpipe_start_endtime_diffs(
 
 
 def compute_relative_energy_usage(
-        power_data_segments: pd.DataFrame, 
+        power_data_segments: pd.DataFrame,
         time_periods: list,
         baseline_stats: dict = None) -> (pd.DataFrame, float, float, float):
     """
-    Compute the relative energy usage for each segment.
+    Compute the relative (RE) and absolute (AE) energy usage for each non-baseline segment.
+
+    Two distinct baseline quantities are involved, and mixing them up is the classic source
+    of "AE should equal BE + RE but doesn't" confusion:
+
+    - `be` (lower case): the baseline energy PER TAPO SAMPLE (kWh/sample) -- a RATE.
+      This is `baseline_stats['mean_energy']` (or the mean of the baseline segment as a
+      fallback), i.e. average baseline power x sampling interval. It is NOT a window total.
+    - `BE` (upper case): the baseline energy TOTALED OVER A GIVEN WINDOW (kWh), i.e.
+      `be * n_samples_in_that_window`. This is what is actually comparable to AE and RE.
+
+    For any step/window: AE == BE + RE, since RE is computed as
+    `sum(sample_i - be) == sum(sample_i) - n*be == AE - BE`.
 
     Parameters:
     power_data_segments (list): List of power data segments
+    time_periods (list): Time periods corresponding to the segments
+    baseline_stats (dict): Optional baseline statistics (see compute_baseline_stats);
+        when provided, `be` is taken from `baseline_stats['mean_energy']` rather than
+        the mean of power_data_segments[0].
 
     Returns:
-    pd.DataFrame: DataFrame with relative energy usage
+    outdf (pd.DataFrame): per-step breakdown with columns "step", "start", "stop",
+        "duration", "be(kWh)" (the rate, repeated per row for traceability),
+        "BE(kWh)" (baseline energy totaled over that step's window),
+        "energy(kWh)" (RE for that step), "absolute_energy(kWh)" (AE for that step).
+        `outdf["BE(kWh)"].sum()` gives the total BE over the whole surge/pipeline window,
+        comparable to the returned total_absolute_energy and total_relative_energy.
+    be (float): baseline energy rate (kWh/sample) -- kept for backward compatibility
+        with existing callers that treat this return value as "the" baseline energy.
+    total_absolute_energy (float): AE, summed over all non-baseline segments (kWh)
+    total_relative_energy (float): RE, summed over all non-baseline segments (kWh)
     """
 
-    # Total relative energy usage (relative to baseline)
+    # Total relative energy usage (RE, relative to baseline)
     total_relative_energy = 0
-    baseline_energy = 0
-    # Total absolute energy usage (without baseline subtraction)
+    # Baseline energy rate (be), kWh per Tapo sample -- NOT a window total
+    be = 0
+    # Total absolute energy usage (AE, without baseline subtraction)
     total_absolute_energy = 0
 
     baseline_segment = power_data_segments[0]  # assume that this corresponds to the baseline
     try:
-        baseline_energy = baseline_segment['Energy(kWh)'].mean()
+        be = baseline_segment['Energy(kWh)'].mean()
     except KeyError:
-        print("    Warning! Could not compute baseline energy:")
-        print(baseline_energy)
+        print("    Warning! Could not compute baseline energy rate (be):")
+        print(be)
 
     if baseline_stats is not None:
-        print(f"    Using baseline energy from baseline_stats: {baseline_stats['mean_energy']} kWh")
-        print(f"    Baseline energy from baseline_segment    : {baseline_energy} kWh")
-        baseline_energy = baseline_stats['mean_energy']
-    outdf = pd.DataFrame(columns=["step", "start", "stop", "duration", "energy(kWh)"])
+        print(f"    Using baseline energy rate (be) from baseline_stats: {baseline_stats['mean_energy']} kWh/sample")
+        print(f"    Baseline energy rate (be) from baseline_segment     : {be} kWh/sample")
+        be = baseline_stats['mean_energy']
+    outdf = pd.DataFrame(columns=["step", "start", "stop", "duration", "be(kWh)", "BE(kWh)", "energy(kWh)", "absolute_energy(kWh)"])
 
     segment_nr = 1
     start_segment = 1
     for segment in power_data_segments[start_segment:]:
         print(f"    Processing segment {segment_nr}")
         if not segment.empty:
-            total_energy = segment['Energy(kWh)'].sum()
-            relative_energy = segment['Energy(kWh)'] - baseline_energy
-            segment_energy = relative_energy.sum()
+            n_samples = len(segment)
+            total_energy = segment['Energy(kWh)'].sum()  # AE for this step
+            segment_BE = be * n_samples  # BE for this step: baseline rate totaled over this step's window
+            relative_energy = segment['Energy(kWh)'] - be
+            segment_energy = relative_energy.sum()  # RE for this step
             total_absolute_energy += total_energy
             total_relative_energy += segment_energy
             step = time_periods[segment_nr][0]
@@ -418,15 +450,23 @@ def compute_relative_energy_usage(
             start = time_periods[segment_nr][1]
             stop = time_periods[segment_nr][2]
             duration = (pd.to_datetime(stop) - pd.to_datetime(start)).total_seconds()
-            new_row = pd.DataFrame([{"step": step, "start": start, "stop": stop, "duration": duration, "energy(kWh)": segment_energy, "absolute_energy(kWh)": total_energy}])
+            new_row = pd.DataFrame([{
+                "step": step, "start": start, "stop": stop, "duration": duration,
+                "be(kWh)": be, "BE(kWh)": segment_BE,
+                "energy(kWh)": segment_energy, "absolute_energy(kWh)": total_energy
+            }])
             outdf = pd.concat([outdf, new_row], ignore_index=True)
         else:
             print(f"    Warning! Empty segment {segment_nr}")
         # increment the segment_nr
         segment_nr += 1
-    print(f"Total absolute energy consumption (kWh): {total_absolute_energy}")
-    print(f"Total relative energy consumption (kWh): {total_relative_energy}")
-    return outdf, baseline_energy, total_absolute_energy, total_relative_energy
+    total_baseline_energy = outdf["BE(kWh)"].sum() if not outdf.empty else 0
+    print(f"Baseline energy rate (be, kWh/sample): {be}")
+    print(f"Total baseline energy (BE, kWh): {total_baseline_energy}")
+    print(f"Total absolute energy consumption (AE, kWh): {total_absolute_energy}")
+    print(f"Total relative energy consumption (RE, kWh): {total_relative_energy}")
+    print(f"Check AE == BE + RE: {total_absolute_energy} == {total_baseline_energy + total_relative_energy} (diff {total_absolute_energy - (total_baseline_energy + total_relative_energy):.2e})")
+    return outdf, be, total_absolute_energy, total_relative_energy
 
 
 ### Plotting

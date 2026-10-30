@@ -1,0 +1,2 @@
+conf,tapo_be_avg,tapo_be_std,tapo_BE_avg,tapo_BE_std,tapo_absolute_energy_avg,tapo_absolute_energy_std,tapo_relative_energy_avg,tapo_relative_energy_std,simpipe_energy_avg,simpipe_energy_std,simpipe_duration_avg,simpipe_duration_std
+conf-1,0.017598830432193704,0.0016782340490883942,0.6335578955589733,0.06041642576718217,1.0779597916666666,0.022784180455456757,0.44440189610769326,0.07026880564359018,3.2023627500000003,0.0003765815814667631,10814.25,1.0897247358851685

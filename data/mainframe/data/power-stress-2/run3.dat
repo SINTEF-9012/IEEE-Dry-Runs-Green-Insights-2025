@@ -1,0 +1,3 @@
+# run3 - power-stress
+step  start   stop    duration    co2 energy  status
+power-stress(0:0)	2026-09-29T08:56:26Z	2026-09-29T11:56:32Z	10806	12.844	0.426993	Succeeded

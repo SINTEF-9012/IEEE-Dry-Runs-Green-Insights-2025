@@ -1,0 +1,7 @@
+# power surge and carbontracker time differences (minutes) - power-stress-2
+configuration   runNr   startDiff   endDiff duration
+power-surge 1   0.06   -0.03   180.1
+power-surge 2   0.08    -0.01   180.1   
+power-surge 3   0.06    -0.03   180.1
+power-surge 4   0.08    0.00    180.1
+
